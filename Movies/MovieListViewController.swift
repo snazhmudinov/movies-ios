@@ -24,7 +24,7 @@ class MovieListViewController: UIViewController {
     var baseUrl = "https://api.themoviedb.org/3/movie/"
     var basePosterUrl = "http://image.tmdb.org/t/p/w500//"
     
-    var movies: [Movie]?
+    var moviesContainer: MovieContainer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,7 +40,7 @@ class MovieListViewController: UIViewController {
                 
                 if response.result.isSuccess {
                     do {
-                        self.movies = try JSONDecoder().decode([Movie].self, from: response.data!)
+                        self.moviesContainer = try JSONDecoder().decode(MovieContainer.self, from: response.data!)
                     } catch {
                         print("Error parsing json")
                     }
