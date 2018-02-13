@@ -9,7 +9,10 @@
 import UIKit
 import Alamofire
 
-class MovieListViewController: UIViewController {
+class MovieListViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+    
+    @IBOutlet weak var moviesCollectionView: UICollectionView!
+    
     
     let categories = [
         "Popular": "popular",
@@ -41,11 +44,30 @@ class MovieListViewController: UIViewController {
                 if response.result.isSuccess {
                     do {
                         self.moviesContainer = try JSONDecoder().decode(MovieContainer.self, from: response.data!)
+                        self.setupMovies()
                     } catch {
                         print("Error parsing json")
                     }
                 }
             }
         }
+    }
+    
+    func setupMovies() {
+        moviesCollectionView.delegate = self
+        moviesCollectionView.dataSource = self
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return moviesContainer?.results.count ?? 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "movieCellView", for: indexPath) as! MovieCollectionCellView
+        let posterPath = moviesContainer?.results[indexPath.row].backdropPath
+        let fullPosterURL = URL(string: basePosterUrl + posterPath!)!
+        cell.setPoster(url: fullPosterURL)
+        
+        return cell
     }
 }
