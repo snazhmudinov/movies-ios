@@ -9,10 +9,15 @@
 import UIKit
 import Alamofire
 
-class MovieListViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
+class MovieListViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    
+    static let kImageWidth: CGFloat = 500
+    static let kImageHeight: CGFloat = 750
+    
+    static let kBaseUrl = "https://api.themoviedb.org/3/movie/"
+    static let kBasePosterUrl = "http://image.tmdb.org/t/p/w500//"
     
     @IBOutlet weak var moviesCollectionView: UICollectionView!
-    
     
     let categories = [
         "Popular": "popular",
@@ -22,12 +27,8 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
     ]
     
     var selectedCategory: String?
+    var moviesContainer: Movie?
     let parameters: Parameters = ["api_key": "7529be3d3e7c986c84fdac10f7eb25c4"]
-    
-    var baseUrl = "https://api.themoviedb.org/3/movie/"
-    var basePosterUrl = "http://image.tmdb.org/t/p/w500//"
-    
-    var moviesContainer: MovieContainer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,13 +38,13 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
             let categoryParam = categories[category]
             
             guard let param = categoryParam else { return }
-            let url = baseUrl + param
+            let url = MovieListViewController.kBaseUrl + param
             
             Alamofire.request(url, method: .get, parameters: parameters, encoding: URLEncoding.queryString, headers: nil).responseJSON { response in
                 
                 if response.result.isSuccess {
                     do {
-                        self.moviesContainer = try JSONDecoder().decode(MovieContainer.self, from: response.data!)
+                        self.moviesContainer = try JSONDecoder().decode(Movie.self, from: response.data!)
                         self.setupMovies()
                     } catch {
                         print("Error parsing json")
@@ -64,10 +65,29 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "movieCellView", for: indexPath) as! MovieCollectionCellView
-        let posterPath = moviesContainer?.results[indexPath.row].backdropPath
-        let fullPosterURL = URL(string: basePosterUrl + posterPath!)!
+        let posterPath = moviesContainer?.results[indexPath.row].posterPath
+        let fullPosterURL = URL(string: MovieListViewController.kBasePosterUrl + posterPath!)!
         cell.setPoster(url: fullPosterURL)
         
         return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let requiredWidth = UIScreen.main.bounds.width / 2
+        let requiredHeight = (requiredWidth * MovieListViewController.kImageHeight) / MovieListViewController.kImageWidth
+        
+        return CGSize(width: requiredWidth, height: requiredHeight)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let movies = moviesContainer?.results else { return }
+        let selectedMovie = movies[indexPath.row]
+        
+        if let movieDetailsViewController = storyboard?.instantiateViewController(withIdentifier: "movieDetails") as?
+            MovieDetailsViewController {
+            movieDetailsViewController.movie = selectedMovie
+            navigationController?.show(movieDetailsViewController, sender: self)
+        }
     }
 }
