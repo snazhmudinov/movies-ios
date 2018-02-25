@@ -16,6 +16,7 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
     
     static let kBaseUrl = "https://api.themoviedb.org/3/movie/"
     static let kBasePosterUrl = "http://image.tmdb.org/t/p/w500//"
+    static let kParameters: Parameters = ["api_key": "7529be3d3e7c986c84fdac10f7eb25c4"]
     
     @IBOutlet weak var moviesCollectionView: UICollectionView!
     
@@ -28,7 +29,6 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
     
     var selectedCategory: String?
     var moviesContainer: Movie?
-    let parameters: Parameters = ["api_key": "7529be3d3e7c986c84fdac10f7eb25c4"]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,7 +40,7 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
             guard let param = categoryParam else { return }
             let url = MovieListViewController.kBaseUrl + param
             
-            Alamofire.request(url, method: .get, parameters: parameters, encoding: URLEncoding.queryString, headers: nil).responseJSON { response in
+            Alamofire.request(url, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseJSON { response in
                 
                 if response.result.isSuccess {
                     do {

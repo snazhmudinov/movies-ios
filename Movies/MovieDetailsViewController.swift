@@ -9,20 +9,24 @@
 import UIKit
 import SnapKit
 import Kingfisher
+import Alamofire
 
 class MovieDetailsViewController: UIViewController {
 
     @IBOutlet weak var scrollView: UIScrollView!
     var movie: Result?
+    var youTubeTrailerLink: URL?
     
     //Static constants
     static let kWidthToHeightRatio = CGFloat(1.79)
     static let kContentOffset = 8
+    static let kYouTubeBaseUrl = "https://www.youtube.com/watch?v="
     
     //UI elements
     lazy var posterImageView = UIImageView(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.width / MovieDetailsViewController.kWidthToHeightRatio))
     lazy var movieTitle = UILabel()
     lazy var movieDescription = UILabel()
+    lazy var watchTrailerButton = UIButton(type: UIButtonType.system)
     
     
     override func viewDidLoad() {
@@ -34,6 +38,9 @@ class MovieDetailsViewController: UIViewController {
     }
     
     func setupUI() {
+        //Get YoutTube trailer link
+        getYouTubeLink()
+        
         //Movie poster
         scrollView.addSubview(posterImageView)
         let imageUrl = URL(string: MovieListViewController.kBasePosterUrl + (movie?.backdropPath)!)
@@ -80,6 +87,51 @@ class MovieDetailsViewController: UIViewController {
             
         }
         
+        scrollView.addSubview(watchTrailerButton)
+        watchTrailerButton.setImage(#imageLiteral(resourceName: "play"), for: .normal)
+        watchTrailerButton.tintColor = UIColor.white
+        watchTrailerButton.addTarget(self, action: #selector(MovieDetailsViewController.playTrailer), for: UIControlEvents.touchUpInside)
+        watchTrailerButton.snp.makeConstraints { (make) -> Void in
+            make.centerX.equalTo(posterImageView.snp.centerX)
+            make.centerY.equalTo(posterImageView.snp.centerY)
+        }
+        
         scrollView.contentSize = view.frame.size
+    }
+    
+    func getYouTubeLink() {
+        let youtTubeLink = MovieListViewController.kBaseUrl + "\(movie!.id)/videos"
+        Alamofire.request(youtTubeLink, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseJSON { response in
+            
+            if response.result.isSuccess {
+                do {
+                    let trailers = try JSONDecoder().decode(Trailer.self, from: response.data!)
+                    let firstTrailer = trailers.results.first { trailer in trailer.type == "Trailer" }?.key
+        
+                    if let trailer = firstTrailer {
+                        guard let url = URL(string: MovieDetailsViewController.kYouTubeBaseUrl + trailer) else { return }
+                        self.youTubeTrailerLink = url
+                    }
+                } catch {
+                    print("Error parsing json")
+                }
+            }
+        }
+    }
+    
+    @objc func playTrailer() {
+        guard let link = youTubeTrailerLink else {
+            let alert = UIAlertController(title: "Error", message: "No trailer available", preferredStyle: .alert)
+            let okAction = UIAlertAction(title: "OK", style: .default) { handler in
+                alert.dismiss(animated: true, completion: nil)
+            }
+            alert.addAction(okAction)
+            self.present(alert, animated: true, completion: nil)
+            return
+        }
+        
+        if UIApplication.shared.canOpenURL(link) {
+            UIApplication.shared.open(link, options: [:], completionHandler: nil)
+        }
     }
 }
