@@ -15,7 +15,7 @@ class MovieDetailsViewController: UIViewController {
 
     @IBOutlet weak var scrollView: UIScrollView!
     var movie: Result?
-    var youTubeTrailerLink: URL?
+    var youtubeId: String?
     
     //Static constants
     static let kWidthToHeightRatio = CGFloat(1.79)
@@ -106,11 +106,10 @@ class MovieDetailsViewController: UIViewController {
             if response.result.isSuccess {
                 do {
                     let trailers = try JSONDecoder().decode(Trailer.self, from: response.data!)
-                    let firstTrailer = trailers.results.first { trailer in trailer.type == "Trailer" }?.key
+                    let trailerKey = trailers.results.first { trailer in trailer.type == "Trailer" }?.key
         
-                    if let trailer = firstTrailer {
-                        guard let url = URL(string: MovieDetailsViewController.kYouTubeBaseUrl + trailer) else { return }
-                        self.youTubeTrailerLink = url
+                    if let key = trailerKey {
+                        self.youtubeId = key
                     }
                 } catch {
                     print("Error parsing json")
@@ -120,7 +119,7 @@ class MovieDetailsViewController: UIViewController {
     }
     
     @objc func playTrailer() {
-        guard let link = youTubeTrailerLink else {
+        guard youtubeId != nil else {
             let alert = UIAlertController(title: "Error", message: "No trailer available", preferredStyle: .alert)
             let okAction = UIAlertAction(title: "OK", style: .default) { handler in
                 alert.dismiss(animated: true, completion: nil)
@@ -130,8 +129,17 @@ class MovieDetailsViewController: UIViewController {
             return
         }
         
-        if UIApplication.shared.canOpenURL(link) {
-            UIApplication.shared.open(link, options: [:], completionHandler: nil)
+        //Try to open in YouTube app, if not installed - open Safari
+        let youtubeUrl = NSURL(string: "youtube://\(youtubeId!)")
+        if UIApplication.shared.canOpenURL(youtubeUrl! as URL) {
+            UIApplication.shared.open(youtubeUrl! as URL, options: [:], completionHandler: nil  )
+        } else {
+            let externalYouTubeLink = URL(string: MovieDetailsViewController.kYouTubeBaseUrl + youtubeId!)
+            
+            guard let link = externalYouTubeLink else  { return }
+            if UIApplication.shared.canOpenURL(link) {
+                UIApplication.shared.open(link, options: [:], completionHandler: nil)
+            }
         }
     }
 }
