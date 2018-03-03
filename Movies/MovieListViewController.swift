@@ -42,9 +42,10 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
             guard let param = categoryParam else { return }
             let url = MovieListViewController.kBaseUrl + param
             Alamofire.request(url, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseObject { (response: DataResponse<Movie>) in
-                
-                self.movies = response.result.value
-                self.setupMovies()
+                if response.result.isSuccess {
+                    self.movies = response.result.value
+                    self.setupMovies()
+                }
             }
         }
     }
@@ -76,13 +77,12 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-//        guard let movies = movies?.results else { return }
-//        let selectedMovie = movies[indexPath.row]
-//
-//        if let movieDetailsViewController = storyboard?.instantiateViewController(withIdentifier: "movieDetails") as?
-//            MovieDetailsViewController {
-//            movieDetailsViewController.movie = selectedMovie
-//            navigationController?.show(movieDetailsViewController, sender: self)
-//        }
+        guard let movie = self.movies?.results?[indexPath.row] else { return }
+
+        if let movieDetailsViewController = storyboard?.instantiateViewController(withIdentifier: "movieDetails") as?
+            MovieDetailsViewController {
+            movieDetailsViewController.movie = movie
+            navigationController?.show(movieDetailsViewController, sender: self)
+        }
     }
 }

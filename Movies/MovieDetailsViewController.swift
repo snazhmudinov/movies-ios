@@ -14,7 +14,8 @@ import Alamofire
 class MovieDetailsViewController: UIViewController {
 
     @IBOutlet weak var scrollView: UIScrollView!
-    var movie: Movie?
+    var movie: Movie.Result?
+    var trailers: Trailer?
     var youtubeId: String?
     
     //Static constants
@@ -43,8 +44,8 @@ class MovieDetailsViewController: UIViewController {
         
         //Movie poster
         scrollView.addSubview(posterImageView)
-//        let imageUrl = URL(string: MovieListViewController.kBasePosterUrl + (movie?.backdropPath)!)
-//        posterImageView.kf.setImage(with: imageUrl)
+        let imageUrl = URL(string: MovieListViewController.kBasePosterUrl + (movie?.backdropPath)!)
+        posterImageView.kf.setImage(with: imageUrl)
         
         //Movie title
         let titleLabel = UILabel()
@@ -57,7 +58,7 @@ class MovieDetailsViewController: UIViewController {
            make.left.equalTo(view.snp.left).offset(MovieDetailsViewController.kContentOffset)
         }
         
-//        movieTitle.text = movie?.originalTitle
+        movieTitle.text = movie?.originalTitle
         scrollView.addSubview(movieTitle)
         movieTitle.numberOfLines = 0
         movieTitle.snp.makeConstraints { (make) -> Void in
@@ -77,7 +78,7 @@ class MovieDetailsViewController: UIViewController {
             make.left.equalTo(view.snp.left).offset(MovieDetailsViewController.kContentOffset)
         }
         
-//        movieDescription.text = movie?.overview
+        movieDescription.text = movie?.overview
         scrollView.addSubview(movieDescription)
         movieDescription.numberOfLines = 0
         movieDescription.snp.makeConstraints { (make) -> Void in
@@ -100,22 +101,14 @@ class MovieDetailsViewController: UIViewController {
     }
     
     func getYouTubeLink() {
-//        let youtTubeLink = MovieListViewController.kBaseUrl + "\(movie!.id)/videos"
-//        Alamofire.request(youtTubeLink, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseJSON { response in
-//
-//            if response.result.isSuccess {
-//                do {
-//                    let trailers = try JSONDecoder().decode(Trailer.self, from: response.data!)
-//                    let trailerKey = trailers.results.first { trailer in trailer.type == "Trailer" }?.key
-//
-//                    if let key = trailerKey {
-//                        self.youtubeId = key
-//                    }
-//                } catch {
-//                    print("Error parsing json")
-//                }
-//            }
-//        }
+        guard let movieId = movie?.id else { return }
+        let youtTubeLink = MovieListViewController.kBaseUrl + String(movieId) + "/videos"
+        Alamofire.request(youtTubeLink, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseObject { (response: DataResponse<Trailer>) in
+            if response.result.isSuccess {
+                self.trailers = response.result.value
+                self.youtubeId = self.trailers?.results?[0].key
+            }
+        }
     }
     
     @objc func playTrailer() {

@@ -7,22 +7,40 @@
 //
 
 import Foundation
+import ObjectMapper
 
-struct Trailer: Codable {
-    let id: Int
-    let results: [TrailerResult]
+class Trailer: Mappable {
+    var id: Int?
+    var results: [Result]?
+    
+    required init?(map: Map) { }
+    
+    func mapping(map: Map) {
+        id <- map["id"]
+        results <- map["results"]
+    }
 }
 
-struct TrailerResult: Codable {
-    let id, iso639_1, iso3166_1, key: String
-    let name, site: String
-    let size: Int
-    let type: String
+class Result: Mappable {
+    var id: String?
+    var iso_639_1: String?
+    var iso_3166_1: String?
+    var key: String?
+    var name: String?
+    var site: String?
+    var size: Int?
+    var type: String?
     
-    enum CodingKeys: String, CodingKey {
-        case id
-        case iso639_1 = "iso_639_1"
-        case iso3166_1 = "iso_3166_1"
-        case key, name, site, size, type
+    required init?(map: Map) { }
+
+    func mapping(map: Map) {
+        id <- map["id"]
+        iso_639_1 <- map["iso_639_1"]
+        iso_3166_1 <- map["iso_3166_1"]
+        key <- map["key"]
+        name <- map["name"]
+        site <- map["site"]
+        size <- map["size"]
+        type <- map["type"]
     }
 }

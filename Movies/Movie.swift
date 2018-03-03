@@ -50,7 +50,5 @@ class Result: Mappable {
         overview <- map["overview"]
         releaseDate <- map["release_date"]
     }
-    
 }
-
 }
