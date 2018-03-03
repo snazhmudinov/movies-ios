@@ -7,7 +7,9 @@
 //
 
 import UIKit
+import AlamofireObjectMapper
 import Alamofire
+import ObjectMapper
 
 class MovieListViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
     
@@ -28,7 +30,7 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
     ]
     
     var selectedCategory: String?
-    var moviesContainer: Movie?
+    var movies: Movie?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,17 +41,10 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
             
             guard let param = categoryParam else { return }
             let url = MovieListViewController.kBaseUrl + param
-            
-            Alamofire.request(url, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseJSON { response in
+            Alamofire.request(url, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseObject { (response: DataResponse<Movie>) in
                 
-                if response.result.isSuccess {
-                    do {
-                        self.moviesContainer = try JSONDecoder().decode(Movie.self, from: response.data!)
-                        self.setupMovies()
-                    } catch {
-                        print("Error parsing json")
-                    }
-                }
+                self.movies = response.result.value
+                self.setupMovies()
             }
         }
     }
@@ -60,12 +55,12 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return moviesContainer?.results.count ?? 0
+        return movies?.results?.count ?? 0
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "movieCellView", for: indexPath) as! MovieCollectionCellView
-        let posterPath = moviesContainer?.results[indexPath.row].posterPath
+        let posterPath = movies?.results?[indexPath.row].posterPath
         let fullPosterURL = URL(string: MovieListViewController.kBasePosterUrl + posterPath!)!
         cell.setPoster(url: fullPosterURL)
         
@@ -81,13 +76,13 @@ class MovieListViewController: UIViewController, UICollectionViewDelegate, UICol
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let movies = moviesContainer?.results else { return }
-        let selectedMovie = movies[indexPath.row]
-        
-        if let movieDetailsViewController = storyboard?.instantiateViewController(withIdentifier: "movieDetails") as?
-            MovieDetailsViewController {
-            movieDetailsViewController.movie = selectedMovie
-            navigationController?.show(movieDetailsViewController, sender: self)
-        }
+//        guard let movies = movies?.results else { return }
+//        let selectedMovie = movies[indexPath.row]
+//
+//        if let movieDetailsViewController = storyboard?.instantiateViewController(withIdentifier: "movieDetails") as?
+//            MovieDetailsViewController {
+//            movieDetailsViewController.movie = selectedMovie
+//            navigationController?.show(movieDetailsViewController, sender: self)
+//        }
     }
 }
