@@ -7,9 +7,20 @@
 //
 
 import UIKit
+import AlamofireObjectMapper
 import Alamofire
+import ObjectMapper
 
-class MovieListViewController: UIViewController {
+class MovieListViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    
+    static let kImageWidth: CGFloat = 500
+    static let kImageHeight: CGFloat = 750
+    
+    static let kBaseUrl = "https://api.themoviedb.org/3/movie/"
+    static let kBasePosterUrl = "http://image.tmdb.org/t/p/w500//"
+    static let kParameters: Parameters = ["api_key": "7529be3d3e7c986c84fdac10f7eb25c4"]
+    
+    @IBOutlet weak var moviesCollectionView: UICollectionView!
     
     let categories = [
         "Popular": "popular",
@@ -19,12 +30,7 @@ class MovieListViewController: UIViewController {
     ]
     
     var selectedCategory: String?
-    let parameters: Parameters = ["api_key": "7529be3d3e7c986c84fdac10f7eb25c4"]
-    
-    var baseUrl = "https://api.themoviedb.org/3/movie/"
-    var basePosterUrl = "http://image.tmdb.org/t/p/w500//"
-    
-    var moviesContainer: MovieContainer?
+    var movies: Movie?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -34,18 +40,49 @@ class MovieListViewController: UIViewController {
             let categoryParam = categories[category]
             
             guard let param = categoryParam else { return }
-            let url = baseUrl + param
-            
-            Alamofire.request(url, method: .get, parameters: parameters, encoding: URLEncoding.queryString, headers: nil).responseJSON { response in
-                
+            let url = MovieListViewController.kBaseUrl + param
+            Alamofire.request(url, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseObject { (response: DataResponse<Movie>) in
                 if response.result.isSuccess {
-                    do {
-                        self.moviesContainer = try JSONDecoder().decode(MovieContainer.self, from: response.data!)
-                    } catch {
-                        print("Error parsing json")
-                    }
+                    self.movies = response.result.value
+                    self.setupMovies()
                 }
             }
+        }
+    }
+    
+    func setupMovies() {
+        moviesCollectionView.delegate = self
+        moviesCollectionView.dataSource = self
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return movies?.results?.count ?? 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "movieCellView", for: indexPath) as! MovieCollectionCellView
+        let posterPath = movies?.results?[indexPath.row].posterPath
+        let fullPosterURL = URL(string: MovieListViewController.kBasePosterUrl + posterPath!)!
+        cell.setPoster(url: fullPosterURL)
+        
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView,layout collectionViewLayout: UICollectionViewLayout,
+                        sizeForItemAt indexPath: IndexPath) -> CGSize {
+        let requiredWidth = UIScreen.main.bounds.width / 2
+        let requiredHeight = (requiredWidth * MovieListViewController.kImageHeight) / MovieListViewController.kImageWidth
+        
+        return CGSize(width: requiredWidth, height: requiredHeight)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let movie = self.movies?.results?[indexPath.row] else { return }
+
+        if let movieDetailsViewController = storyboard?.instantiateViewController(withIdentifier: "movieDetails") as?
+            MovieDetailsViewController {
+            movieDetailsViewController.movie = movie
+            navigationController?.show(movieDetailsViewController, sender: self)
         }
     }
 }

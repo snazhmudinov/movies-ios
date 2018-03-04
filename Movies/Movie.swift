@@ -1,104 +1,54 @@
-// To parse the JSON, add this file to your project and do:
-//
-//   let movieContainer = try MovieContainer(json)
-
 import Foundation
+import ObjectMapper
 
-struct MovieContainer: Codable {
-    let page, totalResults, totalPages: Int
-    let results: [Result]
+class Movie: Mappable {
+    var page: Int?
+    var totalResults: Int?
+    var totalPages: Int?
+    var results: [Result]?
     
-    enum CodingKeys: String, CodingKey {
-        case page
-        case totalResults = "total_results"
-        case totalPages = "total_pages"
-        case results
+    required init?(map: Map) { }
+    
+    func mapping(map: Map) {
+        page <- map["page"]
+        totalResults <- map["total_results"]
+        totalPages <- map["total_pages"]
+        results <- map["results"]
+    }
+    
+class Result: Mappable {
+    var voteCount: Int?
+    var id: Int?
+    var video: Bool?
+    var voteAverage: Double?
+    var title: String?
+    var popularity: Double?
+    var posterPath: String?
+    var originalLanguage: String?
+    var originalTitle: String?
+    var genreIDS: [Int]?
+    var backdropPath: String?
+    var adult: Bool?
+    var overview: String?
+    var releaseDate: String?
+
+    required init?(map: Map) { }
+
+    func mapping(map: Map) {
+        voteCount <- map["vote_count"]
+        id <- map["id"]
+        video <- map["video"]
+        voteAverage <- map["vote_average"]
+        title <- map["title"]
+        popularity <- map["popularity"]
+        posterPath <- map["poster_path"]
+        originalLanguage <- map["original_language"]
+        originalTitle <- map["original_title"]
+        genreIDS <- map["genre_ids"]
+        backdropPath <- map["backdrop_path"]
+        adult <- map["adult"]
+        overview <- map["overview"]
+        releaseDate <- map["release_date"]
     }
 }
-
-struct Result: Codable {
-    let voteCount, id: Int
-    let video: Bool
-    let voteAverage: Double
-    let title: String
-    let popularity: Double
-    let posterPath: String
-    let originalLanguage: OriginalLanguage
-    let originalTitle: String
-    let genreIDS: [Int]
-    let backdropPath: String
-    let adult: Bool
-    let overview, releaseDate: String
-    
-    enum CodingKeys: String, CodingKey {
-        case voteCount = "vote_count"
-        case id, video
-        case voteAverage = "vote_average"
-        case title, popularity
-        case posterPath = "poster_path"
-        case originalLanguage = "original_language"
-        case originalTitle = "original_title"
-        case genreIDS = "genre_ids"
-        case backdropPath = "backdrop_path"
-        case adult, overview
-        case releaseDate = "release_date"
-    }
 }
-
-enum OriginalLanguage: String, Codable {
-    case de = "de"
-    case en = "en"
-}
-
-// MARK: Convenience initializers
-
-extension MovieContainer {
-    init(data: Data) throws {
-        self = try JSONDecoder().decode(MovieContainer.self, from: data)
-    }
-    
-    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
-        guard let data = json.data(using: encoding) else {
-            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
-        }
-        try self.init(data: data)
-    }
-    
-    init(fromURL url: URL) throws {
-        try self.init(data: try Data(contentsOf: url))
-    }
-    
-    func jsonData() throws -> Data {
-        return try JSONEncoder().encode(self)
-    }
-    
-    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
-        return String(data: try self.jsonData(), encoding: encoding)
-    }
-}
-
-extension Result {
-    init(data: Data) throws {
-        self = try JSONDecoder().decode(Result.self, from: data)
-    }
-    
-    init(_ json: String, using encoding: String.Encoding = .utf8) throws {
-        guard let data = json.data(using: encoding) else {
-            throw NSError(domain: "JSONDecoding", code: 0, userInfo: nil)
-        }
-        try self.init(data: data)
-    }
-    
-    init(fromURL url: URL) throws {
-        try self.init(data: try Data(contentsOf: url))
-    }
-    
-    func jsonData() throws -> Data {
-        return try JSONEncoder().encode(self)
-    }
-    
-    func jsonString(encoding: String.Encoding = .utf8) throws -> String? {
-        return String(data: try self.jsonData(), encoding: encoding)
-    }
-}
-
