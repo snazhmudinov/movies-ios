@@ -11,29 +11,31 @@ import SnapKit
 import Kingfisher
 import Alamofire
 
-class MovieDetailsViewController: UIViewController {
+class MovieDetailsViewController: UIViewController, UICollectionViewDelegate, UICollectionViewDataSource {
 
     @IBOutlet weak var scrollView: UIScrollView!
     @IBOutlet weak var posterImageView: UIImageView!
     @IBOutlet weak var movieTitleLabel: UILabel!
     @IBOutlet weak var movieDescriptionTextView: UILabel!
-    
+    @IBOutlet weak var trailersCollectionView: UICollectionView!
     
     var movie: Movie.Result?
     var trailers: Trailer?
-    var youtubeId: String?
+    var youtubeTrailerIds: [String] = []
+    var spinner: UIView?
     
     //Static constants
     static let kWidthToHeightRatio = CGFloat(1.79)
     static let kContentOffset = 8
     static let kYouTubeBaseUrl = "https://www.youtube.com/watch?v="
+    static let kYoutTubeBaseImageUrl = "https://img.youtube.com/vi/"
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         if movie != nil {
-            //Get YoutTube trailer link
-            getYouTubeLink()
+            //Get all trailer and teaser ids
+            fetchYoutTubeIds()
             
             //Movie poster
             let imageUrl = URL(string: MovieListViewController.kBasePosterUrl + (movie?.backdropPath)!)
@@ -47,6 +49,7 @@ class MovieDetailsViewController: UIViewController {
             
             //Movie title
             movieTitleLabel.text = movie?.originalTitle
+            
             //Movie description
             movieDescriptionTextView.text = movie?.overview
             movieDescriptionTextView.sizeToFit()
@@ -55,41 +58,64 @@ class MovieDetailsViewController: UIViewController {
         }
     }
     
-    func getYouTubeLink() {
+    func fetchYoutTubeIds() {
         guard let movieId = movie?.id else { return }
-        let youtTubeLink = MovieListViewController.kBaseUrl + String(movieId) + "/videos"
-        Alamofire.request(youtTubeLink, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseObject { (response: DataResponse<Trailer>) in
+        let youtTubeIds = MovieListViewController.kBaseUrl + String(movieId) + "/videos"
+        spinner = MovieDetailsViewController.displaySpinner(onView: trailersCollectionView)
+        
+        Alamofire.request(youtTubeIds, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseObject { (response: DataResponse<Trailer>) in
             if response.result.isSuccess {
                 self.trailers = response.result.value
-                print("Number of trailers: \(self.trailers?.results?.count ?? 0)")
+                if let trailers = self.trailers {
+                    trailers.results?.forEach { (trailer) -> Void in
+                        if let key = trailer.key {
+                                self.youtubeTrailerIds.append(key)
+                            }
+                    }
+                }
+                
+                if self.spinner != nil { MovieDetailsViewController.removeSpinner(spinner: self.spinner!) }
+                if !self.youtubeTrailerIds.isEmpty {
+                    self.setupTrailerSection()
+                }
             }
         }
     }
     
-//    @objc func playTrailer() {
-//        guard youtubeId != nil else {
-//            let alert = UIAlertController(title: "Error", message: "No trailer available", preferredStyle: .alert)
-//            let okAction = UIAlertAction(title: "OK", style: .default) { handler in
-//                alert.dismiss(animated: true, completion: nil)
-//            }
-//            alert.addAction(okAction)
-//            self.present(alert, animated: true, completion: nil)
-//            return
-//        }
-//
-//        //Try to open in YouTube app, if not installed - open Safari
-//        let youtubeUrl = NSURL(string: "youtube://\(youtubeId!)")
-//        if UIApplication.shared.canOpenURL(youtubeUrl! as URL) {
-//            UIApplication.shared.open(youtubeUrl! as URL, options: [:], completionHandler: nil  )
-//        } else {
-//            let externalYouTubeLink = URL(string: MovieDetailsViewController.kYouTubeBaseUrl + youtubeId!)
-//
-//            guard let link = externalYouTubeLink else  { return }
-//            if UIApplication.shared.canOpenURL(link) {
-//                UIApplication.shared.open(link, options: [:], completionHandler: nil)
-//            }
-//        }
-//    }
+    func setupTrailerSection () {
+        trailersCollectionView.delegate = self
+        trailersCollectionView.dataSource = self
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return youtubeTrailerIds.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cellview = collectionView.dequeueReusableCell(withReuseIdentifier: "trailerCellView", for: indexPath) as! TrailerCollectionViewCell
+        let videoId = youtubeTrailerIds[indexPath.row]
+        let thumbnailLink = MovieDetailsViewController.kYoutTubeBaseImageUrl + videoId + "/0.jpg"
+        cellview.setThumbnail(url: thumbnailLink)
+        
+        return cellview
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        let videoId = youtubeTrailerIds[indexPath.row]
+        
+        //Try to open in YouTube app, if not installed - open Safari
+        let youtubeUrl = NSURL(string: "youtube://\(videoId)")
+        if UIApplication.shared.canOpenURL(youtubeUrl! as URL) {
+            UIApplication.shared.open(youtubeUrl! as URL, options: [:], completionHandler: nil  )
+        } else {
+            let externalYouTubeLink = URL(string: MovieDetailsViewController.kYouTubeBaseUrl + videoId)
+
+            guard let link = externalYouTubeLink else  { return }
+            if UIApplication.shared.canOpenURL(link) {
+                UIApplication.shared.open(link, options: [:], completionHandler: nil)
+            }
+        }
+    }
 }
 
 extension UIScrollView {
@@ -99,5 +125,38 @@ extension UIScrollView {
             contentRect = contentRect.union(view.frame)
         }
         self.contentSize = contentRect.size
+    }
+}
+
+extension UIViewController {
+    class func displaySpinner(onView : UIView) -> UIView {
+        let spinnerView = UIView.init(frame: onView.bounds)
+        
+        //If the width is bigger than screen width => Adjust it
+        if spinnerView.frame.size.width > UIScreen.main.bounds.width {
+            var spinnerFrame = spinnerView.frame
+            spinnerFrame.size.height = onView.bounds.height
+            spinnerFrame.size.width = UIScreen.main.bounds.width
+            
+            spinnerView.frame = spinnerFrame
+        }
+        
+        spinnerView.backgroundColor = UIColor.init(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.25)
+        let ai = UIActivityIndicatorView.init(activityIndicatorStyle: .gray)
+        ai.startAnimating()
+        ai.center = spinnerView.center
+        
+        DispatchQueue.main.async {
+            spinnerView.addSubview(ai)
+            onView.addSubview(spinnerView)
+        }
+        
+        return spinnerView
+    }
+    
+    class func removeSpinner(spinner :UIView) {
+        DispatchQueue.main.async {
+            spinner.removeFromSuperview()
+        }
     }
 }
