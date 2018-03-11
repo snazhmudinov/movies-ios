@@ -18,6 +18,7 @@ class MovieDetailsViewController: UIViewController, UICollectionViewDelegate, UI
     @IBOutlet weak var movieTitleLabel: UILabel!
     @IBOutlet weak var movieDescriptionTextView: UILabel!
     @IBOutlet weak var trailersCollectionView: UICollectionView!
+    @IBOutlet weak var loadingContainer: UIView!
     
     var movie: Movie.Result?
     var trailers: Trailer?
@@ -32,7 +33,7 @@ class MovieDetailsViewController: UIViewController, UICollectionViewDelegate, UI
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        loadingContainer.isHidden = true
         if movie != nil {
             //Get all trailer and teaser ids
             fetchYoutTubeIds()
@@ -53,15 +54,13 @@ class MovieDetailsViewController: UIViewController, UICollectionViewDelegate, UI
             //Movie description
             movieDescriptionTextView.text = movie?.overview
             movieDescriptionTextView.sizeToFit()
-            
-            scrollView.adjustToFitContent()
         }
     }
     
     func fetchYoutTubeIds() {
         guard let movieId = movie?.id else { return }
         let youtTubeIds = MovieListViewController.kBaseUrl + String(movieId) + "/videos"
-        spinner = MovieDetailsViewController.displaySpinner(onView: trailersCollectionView)
+        loadingContainer.isHidden = false
         
         Alamofire.request(youtTubeIds, method: .get, parameters: MovieListViewController.kParameters, encoding: URLEncoding.queryString, headers: nil).responseObject { (response: DataResponse<Trailer>) in
             if response.result.isSuccess {
@@ -73,8 +72,7 @@ class MovieDetailsViewController: UIViewController, UICollectionViewDelegate, UI
                             }
                     }
                 }
-                
-                if self.spinner != nil { MovieDetailsViewController.removeSpinner(spinner: self.spinner!) }
+                self.loadingContainer.isHidden = true
                 if !self.youtubeTrailerIds.isEmpty {
                     self.setupTrailerSection()
                 }
@@ -114,49 +112,6 @@ class MovieDetailsViewController: UIViewController, UICollectionViewDelegate, UI
             if UIApplication.shared.canOpenURL(link) {
                 UIApplication.shared.open(link, options: [:], completionHandler: nil)
             }
-        }
-    }
-}
-
-extension UIScrollView {
-    func adjustToFitContent() {
-        var contentRect = CGRect.zero
-        for view in self.subviews {
-            contentRect = contentRect.union(view.frame)
-        }
-        self.contentSize = contentRect.size
-    }
-}
-
-extension UIViewController {
-    class func displaySpinner(onView : UIView) -> UIView {
-        let spinnerView = UIView.init(frame: onView.bounds)
-        
-        //If the width is bigger than screen width => Adjust it
-        if spinnerView.frame.size.width > UIScreen.main.bounds.width {
-            var spinnerFrame = spinnerView.frame
-            spinnerFrame.size.height = onView.bounds.height
-            spinnerFrame.size.width = UIScreen.main.bounds.width
-            
-            spinnerView.frame = spinnerFrame
-        }
-        
-        spinnerView.backgroundColor = UIColor.init(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.25)
-        let ai = UIActivityIndicatorView.init(activityIndicatorStyle: .gray)
-        ai.startAnimating()
-        ai.center = spinnerView.center
-        
-        DispatchQueue.main.async {
-            spinnerView.addSubview(ai)
-            onView.addSubview(spinnerView)
-        }
-        
-        return spinnerView
-    }
-    
-    class func removeSpinner(spinner :UIView) {
-        DispatchQueue.main.async {
-            spinner.removeFromSuperview()
         }
     }
 }
