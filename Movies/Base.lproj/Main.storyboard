@@ -241,8 +241,8 @@
                                                     </collectionViewCell>
                                                 </cells>
                                             </collectionView>
-                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cB8-Op-q74">
-                                                <rect key="frame" x="8" y="566" width="359" height="21"/>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="[Rating]" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cB8-Op-q74">
+                                                <rect key="frame" x="8" y="566" width="61" height="21"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
@@ -253,14 +253,30 @@
                                                 <color key="textColor" red="0.43529411759999997" green="0.4431372549" blue="0.47450980390000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
+                                            <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="star" translatesAutoresizingMaskIntoConstraints="NO" id="ObE-cD-TvC">
+                                                <rect key="frame" x="77" y="566" width="20" height="20"/>
+                                                <constraints>
+                                                    <constraint firstAttribute="height" constant="20" id="HKc-B1-va1"/>
+                                                    <constraint firstAttribute="width" constant="20" id="I2G-Wg-0KI"/>
+                                                </constraints>
+                                            </imageView>
+                                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="[Release date]" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="WXW-S8-8D3">
+                                                <rect key="frame" x="256.5" y="566" width="110.5" height="21"/>
+                                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                <nil key="textColor"/>
+                                                <nil key="highlightedColor"/>
+                                            </label>
                                         </subviews>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
+                                            <constraint firstItem="ObE-cD-TvC" firstAttribute="leading" secondItem="cB8-Op-q74" secondAttribute="trailing" constant="8" id="1nB-0m-8TX"/>
                                             <constraint firstItem="qLM-ij-lLN" firstAttribute="leading" secondItem="VvS-UZ-c1t" secondAttribute="leading" constant="8" id="71j-Jj-lui"/>
                                             <constraint firstItem="cB8-Op-q74" firstAttribute="top" secondItem="b8P-kd-KtM" secondAttribute="bottom" constant="8" id="7dT-Hq-EBt"/>
                                             <constraint firstItem="BY1-Ff-2qM" firstAttribute="leading" secondItem="VvS-UZ-c1t" secondAttribute="leading" constant="8" id="8Qr-Pu-5xs"/>
                                             <constraint firstItem="BY1-Ff-2qM" firstAttribute="top" secondItem="qLM-ij-lLN" secondAttribute="bottom" constant="23" id="AhD-0u-HLX"/>
                                             <constraint firstItem="Gsj-A4-6Fg" firstAttribute="top" secondItem="VvS-UZ-c1t" secondAttribute="top" id="B8b-ym-kSE"/>
+                                            <constraint firstItem="ObE-cD-TvC" firstAttribute="top" secondItem="b8P-kd-KtM" secondAttribute="bottom" constant="8" id="EcU-ab-Gc9"/>
+                                            <constraint firstAttribute="trailing" secondItem="WXW-S8-8D3" secondAttribute="trailing" constant="8" id="Egl-zu-VU5"/>
                                             <constraint firstAttribute="trailing" secondItem="BY1-Ff-2qM" secondAttribute="trailing" constant="8" id="Eza-FA-K9H"/>
                                             <constraint firstAttribute="trailing" secondItem="Tmv-0G-xcA" secondAttribute="trailing" constant="8" id="HR2-e9-EPx"/>
                                             <constraint firstItem="TLZ-Wn-J2D" firstAttribute="top" secondItem="Tmv-0G-xcA" secondAttribute="bottom" constant="23" id="Hi2-77-zXn"/>
@@ -275,7 +291,7 @@
                                             <constraint firstItem="IQS-b3-scv" firstAttribute="top" secondItem="Gsj-A4-6Fg" secondAttribute="bottom" constant="8" id="gdB-yX-PJy"/>
                                             <constraint firstItem="QCy-GJ-1gv" firstAttribute="leading" secondItem="VvS-UZ-c1t" secondAttribute="leading" id="hvQ-rV-8Dv"/>
                                             <constraint firstItem="qLM-ij-lLN" firstAttribute="top" secondItem="IQS-b3-scv" secondAttribute="bottom" constant="8" id="jZ3-Gg-J8R"/>
-                                            <constraint firstAttribute="trailing" secondItem="cB8-Op-q74" secondAttribute="trailing" constant="8" id="rMf-dm-tCS"/>
+                                            <constraint firstItem="WXW-S8-8D3" firstAttribute="top" secondItem="b8P-kd-KtM" secondAttribute="bottom" constant="8" id="nSE-ZX-g2r"/>
                                             <constraint firstAttribute="bottom" secondItem="QCy-GJ-1gv" secondAttribute="bottom" constant="148" id="roa-hr-bIc"/>
                                             <constraint firstAttribute="trailing" secondItem="QCy-GJ-1gv" secondAttribute="trailing" id="saB-z3-EAc"/>
                                             <constraint firstAttribute="trailing" secondItem="b8P-kd-KtM" secondAttribute="trailing" constant="8" id="t0n-WA-abN"/>
@@ -316,6 +332,8 @@
                         <outlet property="movieDescriptionTextView" destination="Tmv-0G-xcA" id="qQg-nj-DAH"/>
                         <outlet property="movieTitleLabel" destination="qLM-ij-lLN" id="oy8-4t-ank"/>
                         <outlet property="posterImageView" destination="Gsj-A4-6Fg" id="1Jp-ca-f5u"/>
+                        <outlet property="ratingLabel" destination="cB8-Op-q74" id="KPj-5i-FsH"/>
+                        <outlet property="releaseDateLabel" destination="WXW-S8-8D3" id="LfM-rc-OYC"/>
                         <outlet property="scrollView" destination="PS7-Hm-Mnx" id="OXU-x8-TgY"/>
                         <outlet property="trailersCollectionView" destination="QCy-GJ-1gv" id="nnz-FV-Ykd"/>
                     </connections>
@@ -343,4 +361,7 @@
             <point key="canvasLocation" x="116.8" y="476.76161919040482"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="star" width="30" height="30"/>
+    </resources>
 </document>

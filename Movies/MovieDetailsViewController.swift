@@ -19,6 +19,8 @@ class MovieDetailsViewController: UIViewController, UICollectionViewDelegate, UI
     @IBOutlet weak var movieDescriptionTextView: UILabel!
     @IBOutlet weak var trailersCollectionView: UICollectionView!
     @IBOutlet weak var loadingContainer: UIView!
+    @IBOutlet weak var ratingLabel: UILabel!
+    @IBOutlet weak var releaseDateLabel: UILabel!
     
     var movie: Movie.Result?
     var trailers: Trailer?
@@ -53,8 +55,33 @@ class MovieDetailsViewController: UIViewController, UICollectionViewDelegate, UI
             
             //Movie description
             movieDescriptionTextView.text = movie?.overview
+            
+            //Movie rating and release
+            ratingLabel.text = String(format: "%.1f", movie?.voteAverage ?? 0.0)
+            releaseDateLabel.text = formatReleaseDate()
+            
             movieDescriptionTextView.sizeToFit()
         }
+    }
+    
+    func formatReleaseDate() -> String? {
+        if let movie = self.movie {
+            guard let dateComponents = movie.releaseDate?.split(separator: "-") else { return nil }
+        
+            let year = dateComponents[0]
+            let monthAsInt = Int(dateComponents[1])
+            let dayAsInt = Int(dateComponents[2])
+            
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MM"
+            let monthAsText = formatter.monthSymbols[monthAsInt! - 1]
+            
+            let finalDate = "\(monthAsText) \(dayAsInt!), \(year)"
+            
+            return finalDate
+        }
+        
+        return nil
     }
     
     func fetchYoutTubeIds() {
